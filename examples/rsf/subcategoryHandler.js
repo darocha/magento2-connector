@@ -1,22 +1,23 @@
 /**
  * To be used as `/api/s/[...slug].js` RSF subcategory handler
  */
-import { fetchCmsBlocks, normalizeCmsBlocks } from 'magento2-connector/cms/blocks';
-import { fetchSubcategoryId, normalizeSubcategoryId } from 'magento2-connector/subcategory/id';
-import { fetchSubcategory, normalizeSubcategory } from 'magento2-connector/subcategory';
+import { fetchCmsBlocks, normalizeCmsBlocks } from 'react-storefront-magento2-connector/cms/blocks';
+import { fetchSubcategory, normalizeSubcategory } from 'react-storefront-magento2-connector/subcategory';
+import { fetchSubcategoryId, normalizeSubcategoryId } from 'react-storefront-magento2-connector/subcategory/id';
 import {
   fetchSubcategorySubCategories,
   normalizeSubcategorySubCategories,
-} from 'magento2-connector/subcategory/sub-categories';
-import fulfillAPIRequest from 'react-storefront/props/fulfillAPIRequest';
-import withCaching from 'react-storefront/utils/withCaching';
-import get from 'lodash/get';
+} from 'react-storefront-magento2-connector/subcategory/sub-categories';
+
 import first from 'lodash/first';
-import last from 'lodash/last';
+import fulfillAPIRequest from 'react-storefront/props/fulfillAPIRequest';
+import get from 'lodash/get';
+import getGlobalData from './getGlobalData';
 import groupBy from 'lodash/groupBy';
 import isArray from 'lodash/isArray';
 import isEmpty from 'lodash/isEmpty';
-import getGlobalData from './getGlobalData';
+import last from 'lodash/last';
+import withCaching from 'react-storefront/utils/withCaching';
 
 function filtersToQuery(filters) {
   const filtersGrouped = groupBy(filters, (x) => x.split(':')[0]);
@@ -74,10 +75,10 @@ async function subcategoryHandler(req, res) {
     filters = [];
   }
 
-  // 1) get `id` and `name` & `subcategoryNav` data
+  // 1) get `id` and `name` & `navMenu` data
   let id;
   let name;
-  let subcategoryNav = null;
+  let navMenu = null;
   if (isSearch) {
     id = `Search: ${q}`;
     name = `Results for "${q}"`;
@@ -87,7 +88,7 @@ async function subcategoryHandler(req, res) {
     id = idData.id;
     name = idData.name;
     const rawSubCategoriesData = await fetchSubcategorySubCategories({ urlKey });
-    subcategoryNav = normalizeSubcategorySubCategories(rawSubCategoriesData);
+    navMenu = normalizeSubcategorySubCategories(rawSubCategoriesData);
   }
 
   // 2) get all subcategory page data
@@ -136,8 +137,8 @@ async function subcategoryHandler(req, res) {
         code: `${get(option, 'code')}: ASC`,
       }])).flat(),
     filters,
-    facets: get(data, 'filters', []),
-    subcategoryNav,
+    facets: get(data, 'facets', []),
+    navMenu,
     breadcrumbs: [
       {
         text: 'Home',
